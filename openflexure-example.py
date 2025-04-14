@@ -7,6 +7,9 @@ import sys
 import tty
 import termios
 
+LED_BRIGHTNESS = 0.33
+MOTOR_INCREMENT = 500
+
 def parse_time_value(time_str):
     """
     Parse a time string with units such as '5s', '1m', '2h' or compound strings like '1d 4h 30m'
@@ -39,8 +42,8 @@ def main():
 
     # Use Sangaboard as a context manager for proper setup and cleanup
     with Sangaboard() as sb:
-        # Turn LED on at 0.33 illumination
-        sb.illumination.cc_led = 0.33
+        # Turn LED on
+        sb.illumination.cc_led = LED_BRIGHTNESS
         
         # Set up the camera and start preview
         cam = Camera()
@@ -56,23 +59,23 @@ def main():
         while True:
             key = getch().lower()
             if key == 'w':
-                sb.move_rel([0, 500, 0])
-                print("Moved Y axis up by 500")
+                sb.move_rel([0, MOTOR_INCREMENT, 0])
+                print("Moved Y axis up by MOTOR_INCREMENT")
             elif key == 's':
-                sb.move_rel([0, -500, 0])
-                print("Moved Y axis down by 500")
+                sb.move_rel([0, -MOTOR_INCREMENT, 0])
+                print("Moved Y axis down by MOTOR_INCREMENT")
             elif key == 'a':
-                sb.move_rel([-500, 0, 0])
-                print("Moved X axis left by 500")
+                sb.move_rel([-MOTOR_INCREMENT, 0, 0])
+                print("Moved X axis left by MOTOR_INCREMENT")
             elif key == 'd':
-                sb.move_rel([500, 0, 0])
-                print("Moved X axis right by 500")
+                sb.move_rel([MOTOR_INCREMENT, 0, 0])
+                print("Moved X axis right by MOTOR_INCREMENT")
             elif key == 'z':
-                sb.move_rel([0, 0, 500])
-                print("Moved Z axis up by 500")
+                sb.move_rel([0, 0, MOTOR_INCREMENT])
+                print("Moved Z axis up by MOTOR_INCREMENT")
             elif key == 'x':
-                sb.move_rel([0, 0, -500])
-                print("Moved Z axis down by 500")
+                sb.move_rel([0, 0, -MOTOR_INCREMENT])
+                print("Moved Z axis down by MOTOR_INCREMENT")
             elif key == 'c':
                 print("Exiting interactive mode. Proceeding to timelapse setup.")
                 break
@@ -102,7 +105,7 @@ def main():
 
         # Create a folder for the timelapse images
         start_time = datetime.datetime.now()
-        folder_name = start_time.strftime("%Y%m%d_%H%M%S")
+        folder_name = start_time.strftime("%Y-%m-%d_%H:%M:%S")
         os.makedirs(folder_name, exist_ok=True)
         print(f"Images will be saved to folder: {folder_name}")
 
@@ -110,10 +113,10 @@ def main():
         end_time = start_time + datetime.timedelta(seconds=total_duration)
         print("Starting timelapse capture...")
         while datetime.datetime.now() < end_time:
-            timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+            timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
             filename = os.path.join(folder_name, f"{timestamp}.jpg")
-            # Turn LED on at 0.33 illumination
-            sb.illumination.cc_led = 0.33
+            # Turn LED on
+            sb.illumination.cc_led = LED_BRIGHTNESS
             # Take a photo and save it to the filename
             cam.take_photo(filename)
             # Turn LED off immediately after capture
