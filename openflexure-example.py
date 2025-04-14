@@ -1,14 +1,11 @@
 #!/usr/bin/env python3
-
 import time
 import datetime
 import os
 import re
-
-# Enable serial interface
-# Install picamzero with: sudo apt update && sudo apt install python3-picamzero
-# Install pysangaboard with: sudo pip install --break-system-packages git+https://gitlab.com/filipayazi/pysangaboard.git@sangaboardv5
-# This installs the branch of the pysangaboard library with support for illumination LEDs
+import sys
+import tty
+import termios
 
 def parse_time_value(time_str):
     """
@@ -25,27 +22,39 @@ def parse_time_value(time_str):
     seconds = int(match.group('seconds')) if match.group('seconds') else 0
     return days * 86400 + hours * 3600 + minutes * 60 + seconds
 
+def getch():
+    """Capture a single key press without waiting for Enter."""
+    fd = sys.stdin.fileno()
+    old_settings = termios.tcgetattr(fd)
+    try:
+        tty.setraw(fd)
+        ch = sys.stdin.read(1)
+    finally:
+        termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
+    return ch
+
 def main():
     from sangaboard import Sangaboard
     from picamzero import Camera
 
-    # Set up the camera and start preview
-    cam = Camera()
-    cam.start_preview()
-    print("Camera preview started.")
-    print()
-    print("Interactive motor control:")
-    print("  W/S: Move Y axis up/down")
-    print("  A/D: Move X axis left/right")
-    print("  Z/X: Move Z axis up/down")
-    print()
-    print("Press 'c' when ready to proceed to timelapse capture.")
-
     # Use Sangaboard as a context manager for proper setup and cleanup
     with Sangaboard() as sb:
-        # Interactive control loop for motor movement
+        # Turn LED on at 0.33 illumination
+        sb.illumination.cc_led = 0.33
+        
+        # Set up the camera and start preview
+        cam = Camera()
+        cam.start_preview()
+        print("Camera preview started.\n")
+        print("Interactive motor control:")
+        print("  W/S: Move Y axis up/down")
+        print("  A/D: Move X axis left/right")
+        print("  Z/X: Move Z axis up/down")
+        print("\nPress 'c' when ready to proceed to timelapse capture.")
+
+        # Interactive control loop for motor movement using getch()
         while True:
-            key = input("Enter command (W/A/S/D/Z/X or 'c' to capture): ").strip().lower()
+            key = getch().lower()
             if key == 'w':
                 sb.move_rel([0, 500, 0])
                 print("Moved Y axis up by 500")
@@ -68,13 +77,17 @@ def main():
                 print("Exiting interactive mode. Proceeding to timelapse setup.")
                 break
             else:
-                print("Unknown command. Please use W, A, S, D, Z, X or 'c'.")
+                # Optionally, ignore unknown keys or print a message.
+                print(f"Unknown command: {key}")
 
         # Stop the camera preview before timelapse capture starts
         cam.stop_preview()
         print("Camera preview stopped.")
 
-        # Get timelapse settings from the user
+        # Turn LED off
+        sb.illumination.cc_led = 0.0
+
+        # Get timelapse settings from the user (using input() so Enter is required)
         duration_input = input("Enter timelapse duration (e.g., '1d 4h 30m', '30m'): ")
         total_duration = parse_time_value(duration_input)
         if total_duration is None or total_duration <= 0:
@@ -96,7 +109,6 @@ def main():
         # Start the timelapse capture loop
         end_time = start_time + datetime.timedelta(seconds=total_duration)
         print("Starting timelapse capture...")
-
         while datetime.datetime.now() < end_time:
             timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
             filename = os.path.join(folder_name, f"{timestamp}.jpg")
