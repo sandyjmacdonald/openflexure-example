@@ -68,22 +68,22 @@ def main():
             key = getch().lower()
             if key == 'w':
                 sb.move_rel([0, MOTOR_INCREMENT, 0])
-                print("Moved Y axis up by MOTOR_INCREMENT")
+                print(f"Moved Y axis up by {MOTOR_INCREMENT}")
             elif key == 's':
                 sb.move_rel([0, -MOTOR_INCREMENT, 0])
-                print("Moved Y axis down by MOTOR_INCREMENT")
+                print(f"Moved Y axis down by {MOTOR_INCREMENT}")
             elif key == 'a':
                 sb.move_rel([-MOTOR_INCREMENT, 0, 0])
-                print("Moved X axis left by MOTOR_INCREMENT")
+                print(f"Moved X axis left by {MOTOR_INCREMENT}")
             elif key == 'd':
                 sb.move_rel([MOTOR_INCREMENT, 0, 0])
-                print("Moved X axis right by MOTOR_INCREMENT")
+                print(f"Moved X axis right by {MOTOR_INCREMENT}")
             elif key == 'z':
                 sb.move_rel([0, 0, MOTOR_INCREMENT])
-                print("Moved Z axis up by MOTOR_INCREMENT")
+                print(f"Moved Z axis up by {MOTOR_INCREMENT}")
             elif key == 'x':
                 sb.move_rel([0, 0, -MOTOR_INCREMENT])
-                print("Moved Z axis down by MOTOR_INCREMENT")
+                print(f"Moved Z axis down by {MOTOR_INCREMENT}")
             elif key == 'c':
                 print("Exiting interactive mode. Proceeding to timelapse setup.")
                 break
