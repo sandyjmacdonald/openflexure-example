@@ -6,9 +6,14 @@ import re
 import sys
 import tty
 import termios
+import contextlib
 
 LED_BRIGHTNESS = 0.33
 MOTOR_INCREMENT = 500
+
+# Set the environment variable so Qt has a valid runtime directory
+if 'XDG_RUNTIME_DIR' not in os.environ:
+    os.environ['XDG_RUNTIME_DIR'] = '/tmp'
 
 def parse_time_value(time_str):
     """
@@ -38,7 +43,10 @@ def getch():
 
 def main():
     from sangaboard import Sangaboard
-    from picamzero import Camera
+    
+    with open(os.devnull, 'w') as devnull:
+        with contextlib.redirect_stderr(devnull):
+            from picamzero import Camera
 
     # Use Sangaboard as a context manager for proper setup and cleanup
     with Sangaboard() as sb:
