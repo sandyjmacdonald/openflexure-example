@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+
 import time
 import datetime
 import os
@@ -8,6 +9,8 @@ import tty
 import termios
 import contextlib
 
+# Set sensible defaults for the LED brightness and amount to 
+# increment the motor by
 LED_BRIGHTNESS = 0.33
 MOTOR_INCREMENT = 500
 
